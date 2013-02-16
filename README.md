@@ -19,7 +19,7 @@ echo $i_do_not_exits;
 
 # Changes
 ###0.01:
-First version Released.
+First version Released. Web interface will be released soon
 
 
 # Dependencies for PHP Logger
