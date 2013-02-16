@@ -3,31 +3,58 @@ Is a full featured PHP erorr handler With web interface.
 
 # Simple Setup
 ```php
-<?php
 /* Include the Error Handler class file */
 require_once('ErrorHandler/ErrorHandler.php');
 
-// The first parameter, error_reporting level. (See http://php.net/manual/en/function.error-reporting.php).
-// The second parameter, Full path to a directory where you like to store all error log file. Please dont forget to chmod to 777 to the log directory.
-// The third parameter, this determines whether errors should be printed to the screen as part of the output or if they should be hidden from the user.
-// The fourth parameter, if set to true, Send outputs to ChromePhp or firePHP for Firebug
-$error = new ErrorHandler(-1, 'full/path/to/log/dir', true, true);
+// Initiate the PHP ErrorHandler and  set error_reporting level. (See http://php.net/manual/en/function.error-reporting.php).
+$ErrorHandler = new ErrorHandler(E_ALL);
 
-echo $i_do_not_exits;
+// Set a full path to a file where you like to store log. set to boolean false to disable log to file.
+$ErrorHandler->LogFile('./log/error.log'); // Logging enabled
+
+// Display errors on web page. I do not recommend this to be turned on a production site.
+$ErrorHandler->DisplayError(true); // Enabled.
+
+// Set to false to disable. to enable simply write your project name.
+$ErrorHandler->SysLogIdent('MyErrorHandler'); // Enabled.
+
+// Display errors on Browser's Console. (Plugin for browsers are required).
+$ErrorHandler->LogToConsole(true); // Enabled
 
 ```
+See example.php for more information.
+
 
 # Changes
 ###0.01:
 First version Released. Web interface will be released soon
 
+###0.02:
+- Some bug fixes.
+- New Features:
+-- Catch Fatal Errors
+-- Catch Exception
+-- Syslog
+-- Templating system
+
+
+# TODO
+- PHP auto_prepend_file script for Parse Error
+- An ajax enabled web interface for log viewing.
+
 
 # Dependencies for PHP ErrorHandler
 ChromePHP (http://www.chromephp.com)
-
 FirePHP (http://www.firephp.org)
 
-Note: dependencies are included with this package.
+# NOTE
+1. ErrorHander automatically disable xdebug
+2. Cannot catch "Parse Error"
+3. Dependencies are included with this package.
+4. Plugins required for browser for LogToConsole(); visit
+    ChromePHP: http://www.chromephp.com
+    FirePHP: http://www.firephp.org
+
 
 # Questions?
 If you have any questions, please feel free to ask on the http://k1ngdom.net
