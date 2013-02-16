@@ -145,7 +145,7 @@ class ErrorHandler {
 
 
     /**
-     * Display errors on web page. I do not recommend this to be turned on on production site.
+     * Display errors on web page. I do not recommend this to be turned on a production site.
      *
      * @param string $errno      The level of the error raised.
      * @param string $errstr     The error message.
@@ -195,7 +195,7 @@ class ErrorHandler {
         }
 
         if (class_exists('ChromePhp') === true) {
-            $LogType = str_replace('::info', '::log', $LogType);
+            $LogType = str_replace('info', 'log', $LogType);
             call_user_func(array('ChromePhp', $LogType), $ErrorLog);
         }
 
