@@ -44,8 +44,8 @@ First version Released. Web interface will be released soon
 
 
 # Dependencies for PHP ErrorHandler
-ChromePHP (http://www.chromephp.com)
-FirePHP (http://www.firephp.org)
+- ChromePHP (http://www.chromephp.com)
+- FirePHP (http://www.firephp.org)
 
 # NOTE
 - ErrorHander automatically disable xdebug
