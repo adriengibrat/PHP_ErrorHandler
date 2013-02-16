@@ -52,10 +52,8 @@ First version Released. Web interface will be released soon
 - Cannot catch "Parse Error"
 - Dependencies are included with this package.
 - Plugins required for browser for LogToConsole();
-
-    ChromePHP: http://www.chromephp.com
-
-    FirePHP: http://www.firephp.org
+ - ChromePHP: http://www.chromephp.com
+ - FirePHP: http://www.firephp.org
 
 
 # Questions?
