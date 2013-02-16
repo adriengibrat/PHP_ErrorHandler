@@ -24,7 +24,9 @@ First version Released.
 
 # Dependencies for PHP Logger
 ChromePHP (http://www.chromephp.com)
+
 FirePHP (http://www.firephp.org)
+
 Note: dependencies are included with this package.
 
 # Questions?
