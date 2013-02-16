@@ -3,8 +3,8 @@ Is full featured PHP erorr handler With web interface.
 
 # Simple Setup
 ```php
-/* Include the Error Handler class file */
 <?php
+/* Include the Error Handler class file */
 require_once('ErrorHandler/ErrorHandler.php');
 
 // The first parameter, error_reporting level. (See http://php.net/manual/en/function.error-reporting.php).
@@ -21,15 +21,10 @@ echo $i_do_not_exits;
 First version Released.
 
 
-# Credits
-
-## ChromePHP
-Console logging extension for Google Chrome
-http://www.chromephp.com/
-
-## FirePHP
-http://www.firephp.org/
-
+# Dependencies for PHP Logger
+ChromePHP (http://www.chromephp.com/)
+FirePHP (http://www.firephp.org/)
+Note: dependencies are included with this package.
 
 # Questions?
 If you have any questions, please feel free to ask on the [www.k1ngdom.net]: http://k1ngdom.net/

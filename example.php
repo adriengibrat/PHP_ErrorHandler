@@ -1,4 +1,5 @@
 <?php
+
 /* Include the Error Handler class file */
 require_once('ErrorHandler/ErrorHandler.php');
 
