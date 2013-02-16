@@ -1,5 +1,5 @@
 # PHP Logger
-Is full featured PHP erorr handler With web interface.
+Is a full featured PHP erorr handler With web interface.
 
 # Simple Setup
 ```php
