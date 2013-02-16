@@ -32,10 +32,10 @@ First version Released. Web interface will be released soon
 ###0.02:
 - Some bug fixes.
 - New Features:
--- Catch Fatal Errors
--- Catch Exception
--- Syslog
--- Templating system
+ - Catch Fatal Errors
+ - Catch Exception
+ - Syslog
+ - Templating system
 
 
 # TODO
@@ -48,11 +48,13 @@ ChromePHP (http://www.chromephp.com)
 FirePHP (http://www.firephp.org)
 
 # NOTE
-1. ErrorHander automatically disable xdebug
-2. Cannot catch "Parse Error"
-3. Dependencies are included with this package.
-4. Plugins required for browser for LogToConsole(); visit
+- ErrorHander automatically disable xdebug
+- Cannot catch "Parse Error"
+- Dependencies are included with this package.
+- Plugins required for browser for LogToConsole();
+
     ChromePHP: http://www.chromephp.com
+
     FirePHP: http://www.firephp.org
 
 
