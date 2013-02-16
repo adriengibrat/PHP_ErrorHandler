@@ -25,7 +25,7 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * @category   Debugger
- * @package    PHP logger
+ * @package    PHP ErrorHandler
  * @author     Steven King <info@k1ngdom.net>
  * @copyright  2012 Steven King.
  * @license    http://www.opensource.org/licenses/mit-license.php  MIT License
@@ -45,10 +45,10 @@ if (class_exists('ChromePhp')  === false) {
 /**
  * Server Side Error Handler class.
  *
- * @package PHPlogger
+ * @package ErrorHandler
  * @author Steven King <info@k1ngdom.net>
  */
-class PHPlogger {
+class ErrorHandler {
     /**
      * @var array
      */
@@ -122,7 +122,7 @@ class PHPlogger {
 
 
     /**
-     * Reinitiate PHPLogger after calling the Destroy(). This maybe will be handy in future.
+     * Reinitiate ErrorHandler after calling the Destroy(). This maybe will be handy in future.
      */
     public function Reinitiate() {
         set_error_handler(array($this, 'HandleErrors'), $this->setting['ErrorLevel']);
