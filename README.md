@@ -18,19 +18,20 @@ echo $i_do_not_exits;
 ```
 
 # Changes
+###0.01:
 First version Released.
 
 
 # Dependencies for PHP Logger
-ChromePHP (http://www.chromephp.com/)
-FirePHP (http://www.firephp.org/)
+ChromePHP (http://www.chromephp.com)
+FirePHP (http://www.firephp.org)
 Note: dependencies are included with this package.
 
 # Questions?
-If you have any questions, please feel free to ask on the [www.k1ngdom.net]: http://k1ngdom.net/
+If you have any questions, please feel free to ask on the http://k1ngdom.net
 
 
 # License
-Copyright &copy; 2013, Steven King: [www.k1ngdom.net]: http://k1ngdom.net/
+Copyright &copy; 2013, Steven King: http://k1ngdom.net
 
 Released under the MIT License.
