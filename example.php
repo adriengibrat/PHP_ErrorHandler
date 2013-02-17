@@ -3,7 +3,8 @@
 /* Include the Error Handler class file */
 require_once('ErrorHandler/ErrorHandler.php');
 
-// Initiate the PHP ErrorHandler and  set error_reporting level. (See http://php.net/manual/en/function.error-reporting.php).
+
+// Initiate the PHP ErrorHandler and set error_reporting level. (See http://php.net/manual/en/function.error-reporting.php).
 $ErrorHandler = new ErrorHandler(E_ALL);
 
 // Set a full path to a file where you like to store log. set to boolean false to disable log to file.
@@ -30,7 +31,7 @@ $ErrorHandler->LogToConsole(true); // Enabled
 // $ErrorHandler->Destroy();
 
 
-// Reinitiate the ErrorHandler.
+// Reinitiate the ErrorHandler. Only required if you want to initiate after calling Destroy();
 // $ErrorHandler->Reinitiate();
 
 
@@ -54,4 +55,3 @@ throw new Exception('this is a test'); // Uncaught Exception
 echo fatal(); // Fatal Error.
 
 echo $iwontbeexecuted; // Notice
-

@@ -67,16 +67,17 @@ class ErrorHandler {
      */
     public function __construct($ErrorLevel = false) {
         /* Default settings. */
-        $this->setting['ErrorLevel']   = $ErrorLevel ? $ErrorLevel : ini_get('error_reporting');
+        $this->setting['ErrorLevel']   = is_bool($ErrorLevel) === false ? $ErrorLevel : ini_get('error_reporting');
+        echo $this->setting['ErrorLevel'];
         $this->setting['DisplayError'] = false;
         $this->setting['LogToConsole'] = false;
         $this->setting['LogFile']      = '';
         $this->setting['DateFormat']   = 'd-m-Y H:i:s';
         $this->setting['SysLogIdent']  = false;
         $this->setting['DefElevel']    = ini_get('error_reporting');
+        $this->setting['DefDisplay']    = ini_get('display_errors');
         $this->setting['CatchFatal']   = true;
         $this->setting['DocumentRoot'] = str_replace(array('/','\\'), DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT'] . '/');
-
 
         // FIX.
         ini_set('display_errors', 0);
@@ -120,12 +121,8 @@ class ErrorHandler {
         }
 
         $error = error_get_last();
-        var_dump($error);
-        //exit;
 
         if (is_null($error) === false) {
-
-            var_dump($this->setting['DirSeparator']);
             /** Get an array of arguments of error_get_last() **/
             $args = array(
                 'errno'      => $error["type"],
@@ -245,6 +242,7 @@ class ErrorHandler {
         restore_error_handler();
         restore_exception_handler();
         error_reporting($this->setting['DefElevel']);
+        ini_set('display_errors', $this->setting['DefDisplay']);
         $this->setting['CatchFatal'] = false;
     }
 
@@ -256,6 +254,7 @@ class ErrorHandler {
         set_error_handler(array($this, 'HandleErrors'), $this->setting['ErrorLevel']);
         set_exception_handler(array($this, 'HandleExceptions'));
         error_reporting(-1);
+        ini_set('display_errors', 0);
         $this->setting['CatchFatal'] = true;
     }
 
@@ -408,7 +407,6 @@ class ErrorHandler {
     }
 
 
-
     /**
      * This method used for make the code nice and clean.
      * @param string $Name Name of the template to fetch.
@@ -423,8 +421,8 @@ class ErrorHandler {
             'WriteException' => "[%datetime%] Uncaught %class%: %message% on %file% in line %line%\r\n",
             'firePHPError' => "%error%: %message% in %file% on line %line%\r\n",
             'firePHPException' => 'Uncaught %class%: %message% on %file% in line %line%',
-            'SyslogError' => "[%datetime%] %error%: %message% in %file% on line %line%",
-            'SyslogException' => '[%datetime%] Uncaught %class%: %message% on %file% in line %line%'
+            'SyslogError' => "%error%: %message% in %file% on line %line%",
+            'SyslogException' => 'Uncaught %class%: %message% on %file% in line %line%'
             );
 
         if (array_key_exists($Name, $template) === false) {
