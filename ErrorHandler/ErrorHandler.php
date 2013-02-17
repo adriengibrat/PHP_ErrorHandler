@@ -68,7 +68,6 @@ class ErrorHandler {
     public function __construct($ErrorLevel = false) {
         /* Default settings. */
         $this->setting['ErrorLevel']   = is_bool($ErrorLevel) === false ? $ErrorLevel : ini_get('error_reporting');
-        echo $this->setting['ErrorLevel'];
         $this->setting['DisplayError'] = false;
         $this->setting['LogToConsole'] = false;
         $this->setting['LogFile']      = '';
