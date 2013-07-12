@@ -29,18 +29,12 @@
  * @author     Steven King <info@k1ngdom.net>
  * @copyright  2012 Steven King.
  * @license    http://www.opensource.org/licenses/mit-license.php  MIT License
- * @version    0.02
- * @link       http://k1ngdom.net
+ * @version    0.1
  */
 
-if (class_exists('FB') === false) {
-    require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Plugins' . DIRECTORY_SEPARATOR . 'fb.php';
+if (class_exists('FirePHP') === false) {
+    require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Plugins' . DIRECTORY_SEPARATOR . 'FirePHP.class.php'
 }
-
-if (class_exists('ChromePhp')  === false) {
-    require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'Plugins' . DIRECTORY_SEPARATOR . 'ChromePhp.php';
-}
-
 
 /**
  * Server Side Error Handler class.
@@ -49,7 +43,63 @@ class ErrorHandler {
     /**
      * @var array
      */
-    private $settings = array();
+    protected $setting = array(
+        'errorLevel'   => E_ALL,
+        'displayError' => false,
+        'logToConsole' => false,
+        'logFile'      => false,
+        'dateFormat'   => 'd-m-Y H:i:s',
+        'sysLogIdent'  => false,
+        'catchFatal'   => true,
+        'documentRoot' => null
+    );
+
+    protected $ini = array(
+        'error_reporting'        => -1,
+        'report_memleaks'        => 1,
+        'ignore_repeated_errors' => 1,
+        'ignore_repeated_source' => 1,
+        'track_errors'           => 1,
+        'html_errors'            => 0,
+        'docref_root'            => 'http://php.net/manual/en/',
+        'docref_ext'             => '.php',
+        'log_errors_max_len'     => 0,
+        'display_errors'         => 0
+    );
+
+    protected $template = array(
+        'displayError'     => "<pre><font color='#cc0000'><strong>%error%</strong>: %message% in <strong>%file%</strong> on line <em>%line%</em></font></pre>\r\n",
+        'displayException' => "<pre><font color='#cc0000'>Uncaught <strong>%class%</strong>: %message% on <strong>%file%</strong> in line <em>%line%</em></font></pre>\r\n",
+        'cliError'         => "%error%: %message% in %file% on line %line%\r\n",
+        'cliException'     => "Uncaught %class%: %message% on %file% in line %line%\r\n",
+        'writeError'       => "[%datetime%] %error%: %message% in %file% on line %line%\r\n",
+        'writeException'   => "[%datetime%] Uncaught %class%: %message% on %file% in line %line%\r\n",
+        'firePHPError'     => '%error%: %message% in %file% on line %line%',
+        'firePHPException' => 'Uncaught %class%: %message% on %file% in line %line%',
+        'syslogError'      => '%error%: %message% in %file% on line %line%',
+        'syslogException'  => 'Uncaught %class%: %message% on %file% in line %line%'
+    );
+
+    private $error = array(
+        0                     => 'Unknown'
+        , E_ERROR             => 'Fatal'
+        , E_RECOVERABLE_ERROR => 'Recoverable'
+        , E_WARNING           => 'Warning'
+        , E_PARSE             => 'Parse'
+        , E_NOTICE            => 'Notice'
+        , E_STRICT            => 'Strict'
+        , E_DEPRECATED        => 'Deprecated'
+        , E_CORE_ERROR        => 'Fatal'
+        , E_CORE_WARNING      => 'Warning'
+        , E_COMPILE_ERROR     => 'Compile Fatal'
+        , E_COMPILE_WARNING   => 'Compile Warning'
+        , E_USER_ERROR        => 'Fatal'
+        , E_USER_WARNING      => 'Warning'
+        , E_USER_NOTICE       => 'Notice'
+        , E_USER_DEPRECATED   => 'Deprecated'
+    );
+
+    private $original = array();
 
     /**
      * @var string
@@ -63,98 +113,76 @@ class ErrorHandler {
 
     /**
      * The Constructor.
-     * @param int     $ErrorLevel   error_reporting level. (See http://php.net/manual/en/function.error-reporting.php).
+     * @param int     $errorLevel   error_reporting level. (See http://php.net/manual/en/function.error-reporting.php).
      */
-    public function __construct($ErrorLevel = false) {
+    public function __construct($errorLevel = null) {
         /* Default settings. */
-        $this->setting['ErrorLevel']   = is_bool($ErrorLevel) === false ? $ErrorLevel : ini_get('error_reporting');
-        $this->setting['DisplayError'] = false;
-        $this->setting['LogToConsole'] = false;
-        $this->setting['LogFile']      = '';
-        $this->setting['DateFormat']   = 'd-m-Y H:i:s';
-        $this->setting['SysLogIdent']  = false;
-        $this->setting['DefElevel']    = ini_get('error_reporting');
-        $this->setting['DefDisplay']    = ini_get('display_errors');
-        $this->setting['CatchFatal']   = true;
-        $this->setting['DocumentRoot'] = str_replace(array('/','\\'), DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT'] . '/');
+        $this->setting['errorLevel']   = is_null($errorLevel) ? ini_get('error_reporting') : (int) $errorLevel;
+        $this->setting['documentRoot'] = str_replace(array('/','\\'), DIRECTORY_SEPARATOR, $_SERVER['DOCUMENT_ROOT'] . '/');
 
-        // FIX.
-        ini_set('display_errors', 0);
-        error_reporting(-1);
+        foreach ($this->ini as $setting => $value) {
+            $this->original[$setting] = ini_get($setting);
+            ini_set($setting, $value);
+        }
 
-        self::DisableXdebug();
-        set_error_handler(array($this, 'HandleErrors'), $this->setting['ErrorLevel']);
-        set_exception_handler(array($this, 'HandleExceptions'));
-        register_shutdown_function(array($this, 'HandleFatal'));
+        self::_disableXdebug();
+        set_error_handler(array($this, 'handleErrors'), $this->setting['errorLevel']);
+        set_exception_handler(array($this, 'handleExceptions'));
+        register_shutdown_function(array($this, 'handleFatal'));
     }
-
 
     /**
      * Magic method for Settings
      *
-     * @param  string $name      name of the setting.
-     * @param  mixed  $arguments value of setting.
-     * @return boolean           returns true on success.
+     * @param  string $setting   Name of the setting.
+     * @param  mixed  $arguments Value of setting.
+     * @return ErrorHandler      Fluent interface.
      */
-    public function __call ($name, $arguments) {
-        $AvailableSettings = array('DisplayError', 'LogToConsole', 'LogFile', 'DateFormat', 'SysLogIdent', 'ErrorLevel', 'CatchFatal');
-        if (in_array($name, $AvailableSettings) === false) {
-            return false;
-        }
-
-        if (count($arguments) <= 1) {
-            $this->SetSetting($name, $arguments[0]);
-        } else {
-            $this->SetSetting($name, $arguments);
-        }
-
-        return true;
+    public function __call ($setting, $arguments) {
+        return $this->set($setting, $arguments[0]);
     }
 
     /**
      * Fatal Error Handler.
      */
-    public function HandleFatal() {
-        if ($this->setting['CatchFatal'] === true) {
-            continue;
+    public function handleFatal() {
+        if ($this->setting['catchFatal'] === true) {
+            return;
         }
 
         $error = error_get_last();
 
-        if (is_null($error) === false) {
+        if (!empty($error)) {
             /** Get an array of arguments of error_get_last() **/
-            $args = array(
+            $error = array(
                 'errno'      => $error["type"],
                 'errstr'     => $error["message"],
                 'errfile'    => $error["file"],
                 'errline'    => $error["line"],
                 'errcontext' => ''
-                );
-
+            );
 
             /* Send Errors to firePHP and chromePhp */
-            if ($this->setting['LogToConsole'] === true) {
-                $this->LogToFirePHP(self::ERROR, $args);
+            if ($this->setting['logToConsole'] === true) {
+                $this->_logToFirePHP(self::ERROR, $error);
             }
 
             /* Display Errors */
-            if ($this->setting['DisplayError'] === true) {
-                $this->DisplayError(self::ERROR, $args);
+            if ($this->setting['displayError'] === true) {
+                $this->_displayError(self::ERROR, $error);
             }
 
             /* Write Errors to file. */
-            if ($this->setting['LogFile'] !== false) {
-                $this->LogToFile(self::ERROR, $args);
+            if ($this->setting['logFile'] !== false) {
+                $this->_logToFile(self::ERROR, $error);
             }
 
             /* Send Errors to Syslog */
-            if ($this->setting['SysLogIdent'] !== false) {
-                $this->LogToSyslog(self::ERROR, $args);
+            if ($this->setting['sysLogIdent'] !== false) {
+                $this->_logToSyslog(self::ERROR, $error);
             }
-            //exit; // kill the script.
         }
     }
-
 
     /**
      * This function can be used for defining your own way of handling errors during runtime.
@@ -165,146 +193,147 @@ class ErrorHandler {
      * @param int    $errline    The line number the error was raised at.
      * @param string $errcontext Optional. An array that points to the active symbol table at the point the error occurred.
      */
-    public function HandleErrors($errno, $errstr, $errfile, $errline, $errcontext) {
+    public function handleErrors($errno, $errstr, $errfile, $errline, $errcontext) {
         /* if error has been supressed with an @ */
         if (error_reporting() === 0) {
             return true;
         }
 
         /** Get an array of arguments of this function **/
-        $args = array(
+        $error = array(
             'errno'      => $errno,
             'errstr'     => $errstr,
             'errfile'    => $errfile,
             'errline'    => $errline,
             'errcontext' => $errcontext
-            );
+        );
+        try {
+            /* Send Errors to firePHP and chromePhp */
+            if ($this->setting['logToConsole'] === true) {
+                $this->_logToFirePHP(self::ERROR, $error);
+            }
 
-        /* Send Errors to firePHP and chromePhp */
-        if ($this->setting['LogToConsole'] === true) {
-            $this->LogToFirePHP(self::ERROR, $args);
+            /* Display Errors */
+            if ($this->setting['displayError'] === true) {
+                $this->_displayError(self::ERROR, $error);
+            }
+
+            /* Write Errors to file. */
+            if ($this->setting['logFile'] !== false) {
+                $this->_logToFile(self::ERROR, $error);
+            }
+
+            /* Send Errors to Syslog */
+            if ($this->setting['sysLogIdent'] !== false) {
+                $this->_logToSyslog(self::ERROR, $error);
+            }
+        } catch (Exception $e) {
+            die($e->getMessage());
         }
-
-        /* Display Errors */
-        if ($this->setting['DisplayError'] === true) {
-            $this->DisplayError(self::ERROR, $args);
-        }
-
-        /* Write Errors to file. */
-        if ($this->setting['LogFile'] !== false) {
-            $this->LogToFile(self::ERROR, $args);
-        }
-
-        /* Send Errors to Syslog */
-        if ($this->setting['SysLogIdent'] !== false) {
-            $this->LogToSyslog(self::ERROR, $args);
-        }
-
-        /* Don't execute PHP internal error handler */
         return true;
     }
-
 
     /**
      * Exception Handler function.
      *
      * @param object $exception Arguments passed by set_exception_handler() function
      */
-    public function HandleExceptions ($exception) {
+    public function handleExceptions ($exception) {
+        try {
+            /* Send Errors to firePHP and chromePhp */
+            if ($this->setting['logToConsole'] === true) {
+                $this->_logToFirePHP(self::EXCEPTION, $exception);
+            }
 
-        /* Send Errors to firePHP and chromePhp */
-        if ($this->setting['LogToConsole'] === true) {
-            $this->LogToFirePHP(self::EXCEPTION, $exception);
-        }
+            /* Display Errors */
+            if ($this->setting['displayError'] === true) {
+                $this->_displayError(self::EXCEPTION, $exception);
+            }
 
-        /* Display Errors */
-        if ($this->setting['DisplayError'] === true) {
-            $this->DisplayError(self::EXCEPTION, $exception);
-        }
+            /* Write Errors to file. */
+            if ($this->setting['logFile'] !== false) {
+                $this->_logToFile(self::EXCEPTION, $exception);
+            }
 
-        /* Write Errors to file. */
-        if ($this->setting['LogFile'] !== false) {
-            $this->LogToFile(self::EXCEPTION, $exception);
-        }
-
-        /* Send Errors to Syslog */
-        if ($this->setting['SysLogIdent'] !== false) {
-            $this->LogToSyslog(self::EXCEPTION, $exception);
+            /* Send Errors to Syslog */
+            if ($this->setting['sysLogIdent'] !== false) {
+                $this->_logToSyslog(self::EXCEPTION, $exception);
+            }
+        } catch (Exception $e) {
+            die($e->getMessage());
         }
     }
-
 
     /**
      * Revert to the previous error handler (which could be the built-in or a user defined function).
      */
-    public function Destroy() {
+    public function destroy() {
         restore_error_handler();
         restore_exception_handler();
-        error_reporting($this->setting['DefElevel']);
-        ini_set('display_errors', $this->setting['DefDisplay']);
-        $this->setting['CatchFatal'] = false;
+        foreach ($this->original as $setting => $value) {
+            ini_set($setting, $value);
+        }
+        $this->setting['catchFatal'] = false;
     }
-
 
     /**
-     * Reinitiate ErrorHandler after calling the Destroy(). This maybe will be handy in future.
+     * Restore ErrorHandler after calling the destroy().
      */
-    public function Reinitiate() {
-        set_error_handler(array($this, 'HandleErrors'), $this->setting['ErrorLevel']);
-        set_exception_handler(array($this, 'HandleExceptions'));
-        error_reporting(-1);
-        ini_set('display_errors', 0);
-        $this->setting['CatchFatal'] = true;
+    public function restore() {
+        set_error_handler(array($this, 'handleErrors'), $this->setting['errorLevel']);
+        set_exception_handler(array($this, 'handleExceptions'));
+        foreach ($this->ini as $setting => $value) {
+            ini_set($setting, $value);
+        }
+        $this->setting['catchFatal'] = true;
     }
-
 
     /**
      * Writes errors to an error log file.
      *
      * @param string $type This can be either self:ERROR or self::EXCEPTION
-     * @param mixed  $args Arguments of HandleException or HandleError
+     * @param mixed  $error Arguments of HandleException or HandleError
      */
-    private function LogToFile($type, $args) {
+    private function _logToFile($type, $error) {
         switch ($type) {
             case 'error':
-                $ErrorLog = $this->LineFormat(self::GetTemplate('WriteError'), $args);
+                $ErrorLog = $this->_lineFormat('writeError', $error);
                 break;
             case 'exception':
-                $ErrorLog = $this->LineFormat(self::GetTemplate('WriteException'), $args, true);
+                $ErrorLog = $this->_lineFormat('writeException', $error, true);
                 break;
         }
 
-        if (@file_put_contents($this->setting['LogFile'], $ErrorLog, FILE_APPEND|LOCK_EX) === false) {
-            throw new Exception("Unable to write to log file. Please check file permission.");
+        if (@file_put_contents($this->setting['logFile'], $ErrorLog, FILE_APPEND|LOCK_EX) === false) {
+            throw new Exception('Unable to write to log file. Please check file permission.');
         }
     }
-
 
     /**
      * Display errors on web page. I do not recommend this to be turned on a production site.
      *
      * @param string $type This can be either self:ERROR or self::EXCEPTION
-     * @param mixed  $args Arguments of HandleException or HandleError
+     * @param mixed  $error Arguments of HandleException or HandleError
      */
-    private function DisplayError($type, $args) {
+    private function _displayError($type, $error) {
+        $isCLI = php_sapi_name() === 'cli';
         switch ($type) {
             case 'error':
-                echo $this->LineFormat(self::GetTemplate('DisplayError'), $args);
+                echo $this->_lineFormat($isCLI ? 'cliError' : 'displayError', $error);
                 break;
             case 'exception':
-                echo $this->LineFormat(self::GetTemplate('DisplayException'), $args, true);
+                echo $this->_lineFormat($isCLI ? 'cliException' : 'displayException', $error, true);
                 break;
         }
     }
-
 
     /**
      * Display errors on Browser's Console. (Plugin for browsers are required).
      *
      * @param string $type This can be either self:ERROR or self::EXCEPTION
-     * @param mixed  $args Arguments of HandleException or HandleError
+     * @param mixed  $error Arguments of HandleException or HandleError
      */
-    private function LogToFirePHP($type, $args) {
+    private function _logToFirePHP($type, $error) {
         /** Check if Header is already sent. **/
         if (headers_sent() === true) {
             return false;
@@ -312,7 +341,7 @@ class ErrorHandler {
 
         switch ($type) {
             case 'error':
-                switch($args['errno']) {
+                switch($error['errno']) {
                     case E_ERROR:
                     case E_CORE_ERROR:
                         $LogType =  'error';
@@ -324,46 +353,49 @@ class ErrorHandler {
                     case E_USER_NOTICE:
                     case E_NOTICE:
                     case E_DEPRECATED:
-                        $LogType = 'info';
-                        break;
                     default:
                         $LogType = 'info';
                 }
-                $ErrorLog = $this->LineFormat(self::GetTemplate('firePHPError'), $args);
+                $ErrorLog = $this->_lineFormat('firePHPError', $error);
+                $Meta = array(
+                    'File' => $error['errfile'],
+                    'Line' => $error['errline']
+                );
                 break;
             case 'exception':
                 $LogType =  'error';
-                $ErrorLog = $this->LineFormat(self::GetTemplate('firePHPException'), $args, true);
+                $ErrorLog = $this->_lineFormat('firePHPException', $error, true);
+                $Meta = array(
+                    'File' => $error->getFile(),
+                    'Line' => $error->getLine()
+                );
                 break;
         }
 
-        if (class_exists('FB') === true) {
-            call_user_func(array('FB', $LogType), $ErrorLog);
-        }
-
-        if (class_exists('ChromePhp') === true) {
-            call_user_func(array('ChromePhp', $LogType), $ErrorLog);
+        if (class_exists('FirePHP')) {
+            call_user_func(array(FirePHP::getInstance(true), $LogType), $ErrorLog, null, $Meta);
+        } else  {
+            throw new Exception('Unable to log with FirePHP. Please check FirePHP class is included.');
         }
 
         return true;
     }
 
-
     /**
      * Log to Syslog.
      *
      * @param string $type This can be either self:ERROR or self::EXCEPTION
-     * @param mixed  $args Arguments of HandleException or HandleError
+     * @param mixed  $error Arguments of HandleException or HandleError
      */
-    private function LogToSyslog($type, $args) {
+    private function _logToSyslog($type, $error) {
 
-        if (openlog($this->setting['SysLogIdent'], LOG_PERROR | LOG_ODELAY | LOG_PID, LOG_USER) === false) {
-            throw new Exception("Can't open syslog");
+        if (openlog($this->setting['sysLogIdent'], LOG_PERROR | LOG_ODELAY | LOG_PID, LOG_USER) === false) {
+            throw new Exception('Unable to open syslog');
         }
 
         switch ($type) {
             case 'error':
-                switch($args['errno']) {
+                switch($error['errno']) {
                     case E_ERROR:
                     case E_CORE_ERROR:
                         $LogType =  LOG_ERR;
@@ -381,11 +413,11 @@ class ErrorHandler {
                     default:
                         $LogType = LOG_NOTICE;
                 }
-                $ErrorLog = $this->LineFormat(self::GetTemplate('SyslogError'), $args);
+                $ErrorLog = $this->_lineFormat('syslogError', $error);
                 break;
             case 'exception':
                 $LogType =  LOG_ERR;
-                $ErrorLog = $this->LineFormat(self::GetTemplate('SyslogException'), $args, true);
+                $ErrorLog = $this->_lineFormat('syslogException', $error, true);
                 break;
         }
 
@@ -393,148 +425,65 @@ class ErrorHandler {
         closelog();
     }
 
-
     /**
      * Set custom settings
      *
-     * @param string $name  Name of the setting.
-     * @param mixed  $value Value of the setting.
+     * @param string $setting Name of the setting.
+     * @param mixed  $value   Value of the setting.
+     * @return ErrorHandler   Fluent interface.
      */
-    public function SetSetting($name, $value) {
-        $this->setting[$name] = $value;
-        return true;
-    }
-
-
-    /**
-     * This method used for make the code nice and clean.
-     * @param string $Name Name of the template to fetch.
-     */
-    private static function GetTemplate($Name) {
-        $template = array(
-            'DisplayError' => "<pre><font color='#cc0000'><strong>%error%</strong>: %message% in <strong>%file%</strong> on line <em>%line%</em></font></pre>\r\n",
-            'DisplayException' => "<pre><font color='#cc0000'>Uncaught <strong>%class%</strong>: %message% on <strong>%file%</strong> in line <em>%line%</em></font></pre>\r\n",
-            'CLIError' => "%error%: %message% in %file% on line %line%\r\n",
-            'CLIException' => "Uncaught %class%: %message% on %file% in line %line%\r\n",
-            'WriteError' => "[%datetime%] %error%: %message% in %file% on line %line%\r\n",
-            'WriteException' => "[%datetime%] Uncaught %class%: %message% on %file% in line %line%\r\n",
-            'firePHPError' => "%error%: %message% in %file% on line %line%\r\n",
-            'firePHPException' => 'Uncaught %class%: %message% on %file% in line %line%',
-            'SyslogError' => "%error%: %message% in %file% on line %line%",
-            'SyslogException' => 'Uncaught %class%: %message% on %file% in line %line%'
-            );
-
-        if (array_key_exists($Name, $template) === false) {
-            throw new Exception("Template $Name is not defined in GetTemplate.");
+    public function set($setting, $value) {
+        if (array_key_exists($setting, $this->setting)) {
+            $this->setting[$setting] = $value;
         }
-
-        return $template[$Name];
+        return $this;
     }
-
 
     /**
      * Format the templates.
-     * @param string  $format    Templates from GetTemplate function.
-     * @param mixed   $perms     Object or array passed by error handler.
-     * @param boolean $exception set to true if its an exception template.
+     * @param string  $template Template name.
+     * @param mixed   $error    Exception or array passed by error handler.
      */
-    private function LineFormat($format, $perms, $exception = false) {
-        /* Remove documment root from path. */
-
-        if ($exception === false) {
+    private function _lineFormat($format, $error) {
+        if ($error instanceof Exception) {
             $template = array(
-                '%datetime%' => date($this->setting['DateFormat']),
-                '%error%'    => self::ErrorFriendlyName($perms['errno']),
-                '%message%'  => str_replace($this->setting['DocumentRoot'], '', $perms['errstr']),
-                '%fullpath%' => $perms['errfile'],
-                '%file%'     => str_replace($this->setting['DocumentRoot'], '', $perms['errfile']),
-                '%line%'     => $perms['errline'],
-                '%context%'  => print_r($perms['errcontext'], true)
+                '%datetime%' => date($this->setting['dateFormat']),
+                '%class%'    => get_class($error),
+                '%message%'  => str_replace($this->setting['documentRoot'], '', $error->getMessage()),
+                '%fullpath%' => $error->getFile(),
+                '%file%'     => str_replace($this->setting['documentRoot'], '', $error->getFile()),
+                '%line%'     => $error->getLine(),
+                '%code%'     => $error->getCode()
             );
         } else {
             $template = array(
-                '%datetime%' => date($this->setting['DateFormat']),
-                '%class%'    => get_class($perms),
-                '%message%'  => str_replace($this->setting['DocumentRoot'], '', $perms->getMessage()),
-                '%fullpath%' => $perms->getFile(),
-                '%file%'     => str_replace($this->setting['DocumentRoot'], '', $perms->getFile()),
-                '%line%'     => $perms->getLine(),
-                '%code%'     => $perms->getCode()
-                );
+                '%datetime%' => date($this->setting['dateFormat']),
+                '%error%'    => array_key_exists($error['errno'], $this->error) ? 
+                    $this->error[$error['errno']]:
+                    $this->error[0] . ' ' . $error['errno'],
+                '%message%'  => str_replace($this->setting['documentRoot'], '', $error['errstr']),
+                '%fullpath%' => $error['errfile'],
+                '%file%'     => str_replace($this->setting['documentRoot'], '', $error['errfile']),
+                '%line%'     => $error['errline'],
+                '%context%'  => print_r($error['errcontext'], true)
+            );
         }
 
-
-        foreach ($template as $temp => $value) {
-            $format = str_replace($temp, $value, $format);
+        $format = $this->template[$format];
+        foreach ($template as $placeholder => $value) {
+            $format = str_replace($placeholder, $value, $format);
         }
 
         return $format;
     }
 
-
     /**
      * Disable the xDebug if its enabled.
      */
-    private static function DisableXdebug() {
-        if (function_exists('xdebug_is_enabled') === true) {
-            if (xdebug_is_enabled() === true) {
-                xdebug_disable();
-            }
+    private static function _disableXdebug() {
+        if (function_exists('xdebug_is_enabled') === true && xdebug_is_enabled() === true) {
+            xdebug_disable();
         }
     }
 
-
-    /**
-     * Replace integer with human readable name.
-     *
-     * @param int $errno The level of the error raised.
-     */
-    private static function ErrorFriendlyName ($errno) {
-        switch($errno) {
-            case E_ERROR:
-                return "Fatal Error";
-                break;
-            case E_WARNING:
-                return "Warning";
-                break;
-            case E_PARSE:
-                return "Parse Error";
-                break;
-            case E_NOTICE:
-                return "Notice";
-                break;
-            case E_DEPRECATED:
-                return "Deprecated";
-                break;
-            case E_CORE_ERROR:
-                return "Core Error";
-                break;
-            case E_CORE_WARNING:
-                return "Core Warning";
-                break;
-            case E_COMPILE_ERROR:
-                return "Compile Error";
-                break;
-            case E_COMPILE_WARNING:
-                return "Compile Warning";
-                break;
-            case E_USER_ERROR:
-                return "User Error";
-                break;
-            case E_USER_WARNING:
-                return "User Warning";
-                break;
-            case E_USER_NOTICE:
-                return "User Notice";
-                break;
-            case E_STRICT:
-                return "Strict Notice";
-                break;
-            case E_RECOVERABLE_ERROR:
-                return "Recoverable Error";
-                break;
-            default:
-                return "Unknown error ($errno)";
-        }
-    }
 }
