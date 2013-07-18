@@ -323,7 +323,7 @@ class ErrorHandler {
 
         switch ($type) {
             case self::ERROR:
-                switch($error['errno']) {
+                switch($error['type']) {
                     case E_ERROR:
                     case E_CORE_ERROR:
                         $logType =  'error';
@@ -377,7 +377,7 @@ class ErrorHandler {
 
         switch ($type) {
             case self::ERROR:
-                switch($error['errno']) {
+                switch($error['type']) {
                     case E_ERROR:
                     case E_CORE_ERROR:
                         $LogType =  LOG_ERR;
