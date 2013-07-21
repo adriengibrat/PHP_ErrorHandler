@@ -1,8 +1,0 @@
-[16-02-2013 23:40:19] Notice: Undefined variable: i_do_not_exits in phplogger\example.php on line 48
-[16-02-2013 23:40:19] Warning: Missing argument 1 for a(), called in phplogger\example.php on line 50 and defined in phplogger\example.php on line 43
-[16-02-2013 23:40:19] Warning: Missing argument 2 for a(), called in phplogger\example.php on line 50 and defined in phplogger\example.php on line 43
-[16-02-2013 23:40:19] Uncaught Exception: this is a test on phplogger\example.php in line 52
-[17-02-2013 16:52:40] Notice: Undefined variable: i_do_not_exits in EH\example.php on line 49
-[17-02-2013 16:52:40] Warning: Missing argument 1 for a(), called in EH\example.php on line 51 and defined in EH\example.php on line 44
-[17-02-2013 16:52:40] Warning: Missing argument 2 for a(), called in EH\example.php on line 51 and defined in EH\example.php on line 44
-[17-02-2013 16:52:40] Uncaught Exception: this is a test on EH\example.php in line 53

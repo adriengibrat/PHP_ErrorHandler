@@ -1,0 +1,21 @@
+{
+    "name": "error-handler",
+    "description": "Error handler using psr-3 interface for logging",
+    "keywords": ["error", "handler", "error-handler", "psr", "psr-3", "log"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Adrien Gibrat",
+            "homepage": "https://github.com/adriengibrat"
+        }
+    ],
+    "autoload": {
+        "classmap": [
+            "ErrorHandler.php"
+        ]
+    },
+    "require": {
+        "psr/log": "1.0.0",
+        "firephp/firephp-core": "0.4.0"
+    }
+}
