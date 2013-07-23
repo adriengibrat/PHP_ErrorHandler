@@ -2,14 +2,10 @@
 
 namespace ErrorHandler\Logger;
 
-use \Psr\Log\AbstractLogger;
-use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \RuntimeException;
 
 class XXXLogger extends AbstractLogger
 {
-
-    use LoggerTrait;
 
     public function __construct($label = null)
     {

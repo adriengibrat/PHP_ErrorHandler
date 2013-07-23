@@ -4,20 +4,19 @@ namespace ErrorHandler\Logger\Multiple;
 
 use \Psr\Log\LogLevel;
 use \Psr\Log\LoggerInterface;
-use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \OutOfRangeException;
 
-class DispatchLogger extends MultipleLogger
+class DispatchLogger extends LevelLogger
 {
 
-    const EMERGENCY = 1;
-    const ALERT     = 2;
-    const CRITICAL  = 4;
-    const ERROR     = 8;
-    const WARNING   = 16;
-    const NOTICE    = 32;
-    const INFO      = 64;
-    const DEBUG     = 128;
+    const EMERGENCY = 128;
+    const ALERT     = 64;
+    const CRITICAL  = 32;
+    const ERROR     = 16;
+    const WARNING   = 8;
+    const NOTICE    = 4;
+    const INFO      = 2;
+    const DEBUG     = 1;
 
     protected $map = array(
         LogLevel::EMERGENCY => DispatchLogger::EMERGENCY,
@@ -44,10 +43,12 @@ class DispatchLogger extends MultipleLogger
 
     public function addLogger(LoggerInterface $logger, $flag)
     {
-        if (is_string($flag)) {
-            $flag = array_reduce(explode('|', $flag), function ($flag, $level) {
-                return array_key_exists($level, $this->map) ? $flag | $this->map[$level] : -1;
-            }, 0);
+        if (func_num_args() > 2) {
+            $flag = $this->computeFlag($this->flatten(array_slice(func_get_args(), 1)));
+        } else if (is_array($flag)) {
+            $flag = $this->computeFlag($this->flatten($flag));
+        } else if (is_string($flag)) {
+            $flag = $this->computeFlag(explode('|', $flag));
         }
 
         if (!is_int($flag) || 1 > $flag || $flag > 255) {
@@ -59,6 +60,27 @@ class DispatchLogger extends MultipleLogger
         $this->loggers[$flag] = $logger;
 
         return $this;
+    }
+
+    protected function flatten(Array $array)
+    {
+        return array_reduce($array, function ($flatten, $row) {
+            if (is_array($row)) {
+                return array_merge($flatten, $this->flatten($row));
+            }
+            array_push($flatten, $row);
+            return $flatten;
+        }, array());
+    }
+
+    protected function computeFlag(Array $flags)
+    {
+        return array_reduce($flags, function ($flag, $level) {
+                if (!is_int($level)) {
+                    $level = array_key_exists($level, $this->map) ? $this->map[$level] : -1;
+                }
+                return $flag | $level;
+            }, 0);
     }
 
 }

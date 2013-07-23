@@ -2,14 +2,10 @@
 
 namespace ErrorHandler\Logger;
 
-use \Psr\Log\AbstractLogger;
-use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \RuntimeException;
 
 class StderrLogger extends AbstractLogger
 {
-
-    use LoggerTrait;
 
     private $file;
 

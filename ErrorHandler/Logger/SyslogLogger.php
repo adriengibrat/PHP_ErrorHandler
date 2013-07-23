@@ -3,15 +3,11 @@
 namespace ErrorHandler\Logger;
 
 use \Psr\Log\LogLevel;
-use \Psr\Log\AbstractLogger;
-use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \InvalidArgumentException;
 use \RuntimeException;
 
 class SyslogLogger extends AbstractLogger
 {
-
-    use LoggerTrait;
 
     private $facility;
 
@@ -40,7 +36,7 @@ class SyslogLogger extends AbstractLogger
         LOG_UUCP
     );
 
-    public function __construct($label = null, $facility = LOG_USER)
+    public function __construct($facility = LOG_USER, $label = 'php')
     {
         if (!in_array($facility, static::$facilities, true)) {
             throw new InvalidArgumentException(
@@ -56,7 +52,7 @@ class SyslogLogger extends AbstractLogger
     {
         $this->checkLevel($level);
 
-        if (!openlog($this->label, LOG_PERROR | LOG_ODELAY | LOG_PID, $this->facility)) {
+        if (!openlog($this->label, LOG_NDELAY | LOG_PID, $this->facility)) {
             throw new RuntimeException('Unable to open syslog');
         }
 

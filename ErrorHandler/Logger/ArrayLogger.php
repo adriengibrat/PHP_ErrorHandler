@@ -2,14 +2,8 @@
 
 namespace ErrorHandler\Logger;
 
-use \Psr\Log\AbstractLogger;
-use \ErrorHandler\Logger\Helper\LoggerTrait;
-use \RuntimeException;
-
 class ArrayLogger extends AbstractLogger
 {
-
-    use LoggerTrait;
 
     private $array;
 

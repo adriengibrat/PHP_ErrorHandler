@@ -4,14 +4,11 @@ namespace ErrorHandler\Logger\Multiple;
 
 use \ArrayAccess;
 use \Countable;
-use \Psr\Log\AbstractLogger;
+use \ErrorHandler\Logger\AbstractLogger;
 use \Psr\Log\LoggerInterface;
-use \ErrorHandler\Logger\Helper\LoggerTrait;
 
 class MultipleLogger extends AbstractLogger implements ArrayAccess, Countable
 {
-
-    use LoggerTrait;
 
     protected $loggers;
 

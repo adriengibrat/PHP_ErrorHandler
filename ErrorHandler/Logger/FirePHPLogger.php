@@ -4,13 +4,9 @@ namespace ErrorHandler\Logger;
 
 use \FirePHP;
 use \Psr\Log\LogLevel;
-use \Psr\Log\AbstractLogger;
-use \ErrorHandler\Logger\Helper\LoggerTrait;
 
 class FirePHPLogger extends AbstractLogger
 {
-
-    use LoggerTrait;
 
     private $map = array (
         LogLevel::EMERGENCY => FirePHP::ERROR,
@@ -23,7 +19,7 @@ class FirePHPLogger extends AbstractLogger
         LogLevel::DEBUG     => FirePHP::LOG
     );
 
-    public function __construct($label=null)
+    public function __construct($label = 'php')
     {
         $this->label = $label;
     }

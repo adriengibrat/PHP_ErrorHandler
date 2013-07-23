@@ -2,9 +2,7 @@
 
 namespace ErrorHandler\Logger\Multiple;
 
-use \Psr\Log\LogLevel;
 use \Psr\Log\LoggerInterface;
-use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \OutOfRangeException;
 
 class LevelLogger extends MultipleLogger

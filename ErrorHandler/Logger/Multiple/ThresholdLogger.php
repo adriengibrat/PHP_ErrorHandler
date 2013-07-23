@@ -4,10 +4,9 @@ namespace ErrorHandler\Logger\Multiple;
 
 use \Psr\Log\LogLevel;
 use \Psr\Log\LoggerInterface;
-use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \OutOfRangeException;
 
-class ThresholdLogger extends MultipleLogger
+class ThresholdLogger extends LevelLogger
 {
 
     const EMERGENCY = 7;
@@ -34,25 +33,25 @@ class ThresholdLogger extends MultipleLogger
     {
         $this->checkLevel($level);
 
-        foreach($this->loggers as $limit => $logger)
+        foreach($this->loggers as $threshold => $logger)
         {
-            if ($limit >= $this->map[$level]) {
+            if ($threshold >= $this->map[$level]) {
                 $logger->log($level, $message, $context);
             }
         }
     }
 
-    public function addLogger(LoggerInterface $logger, $limit)
+    public function addLogger(LoggerInterface $logger, $threshold)
     {
-        if (is_string($limit) && array_key_exists($limit, $this->map)) {
-            $limit = $this->map[$limit];
-        } else if (!is_int($limit) || 0 > $limit || $limit > 7) {
+        if (is_string($threshold) && array_key_exists($threshold, $this->map)) {
+            $threshold = $this->map[$threshold];
+        } else if (!is_int($threshold) || 0 > $threshold || $threshold > 7) {
             throw new OutOfRangeException(
                 'Invalid logging threshold limit'
             );
         }
 
-        $this->loggers[$limit] = $logger;
+        $this->loggers[$threshold] = $logger;
 
         return $this;
     }
