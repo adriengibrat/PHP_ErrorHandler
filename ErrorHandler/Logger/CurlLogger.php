@@ -3,13 +3,15 @@
 namespace ErrorHandler\Logger;
 
 use \Psr\Log\AbstractLogger;
+use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \RuntimeException;
 
 class CurlLogger extends AbstractLogger
 {
-    private $handle;
 
-    use LoggerHelperTrait;
+    use LoggerTrait;
+
+    private $handle;
 
     public function __construct($handle, $label = null)
     {
@@ -23,13 +25,13 @@ class CurlLogger extends AbstractLogger
 
     public function log($level, $message, array $context = array())
     {
-        $this->checkSeverity($level);
+        $this->checkLevel($level);
 
-        $this->
+        //$this->
     }
 
 }
-
+/*
             if (! extension_loaded ('curl')) {
                 throw new \LogicException ('CURL extension not loaded.');
             }
@@ -48,3 +50,4 @@ class CurlLogger extends AbstractLogger
             curl_setopt ($ch, CURLOPT_POSTFIELDS, $info);
             curl_exec ($ch);
             curl_close ($ch);
+*/

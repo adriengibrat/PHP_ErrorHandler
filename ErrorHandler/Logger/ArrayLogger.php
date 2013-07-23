@@ -3,13 +3,15 @@
 namespace ErrorHandler\Logger;
 
 use \Psr\Log\AbstractLogger;
+use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \RuntimeException;
 
 class ArrayLogger extends AbstractLogger
 {
-    private $array;
 
-    use LoggerHelperTrait;
+    use LoggerTrait;
+
+    private $array;
 
     public function __construct(array &$array, $label = null)
     {
@@ -18,7 +20,7 @@ class ArrayLogger extends AbstractLogger
 
     public function log($level, $message, array $context = array())
     {
-        $this->checkSeverity($level);
+        $this->checkLevel($level);
 
         $this->array[] = $this->interpolate($message, $context);
     }

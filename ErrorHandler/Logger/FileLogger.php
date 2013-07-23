@@ -3,30 +3,38 @@
 namespace ErrorHandler\Logger;
 
 use \Psr\Log\AbstractLogger;
+use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \RuntimeException;
 
 class FileLogger extends AbstractLogger
 {
 
-    private $label;
+    use LoggerTrait;
 
     private $file;
 
-    use LoggerHelperTrait;
-
     public function __construct($file, $label = null)
     {
-        $this->file  = realpath($file);
-        if (!file_exists($this->file)) {
-            throw new RuntimeException('Unable to find file');
+
+        $path = dirname($file);
+        if (!is_dir($path) && !mkdir($path, 0755, true)) {
+            throw new RuntimeException('Unable to create path');
         }
 
+        $handle = fopen($file, 'a+');
+        if (!$handle) {
+            throw new RuntimeException('Unable to create file');
+        } else {
+            fclose($handle);
+        }
+
+        $this->file  = realpath($file);
         $this->label = $label;
     }
 
     public function log($level, $message, array $context = array())
     {
-        $this->checkSeverity($level);
+        $this->checkLevel($level);
 
         $handle = fopen($this->file, 'a+');
 

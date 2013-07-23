@@ -1,24 +1,24 @@
 <?php
 
-namespace ErrorHandler\Logger;
+namespace ErrorHandler\Logger\Helper;
 
 use \Psr\Log\LogLevel;
 use \Psr\Log\InvalidArgumentException;
 
-trait LoggerHelperTrait
+trait LoggerTrait
 {
 
     private $label;
 
     protected $levels = array(
-        LogLevel::EMERGENCY => null,
-        LogLevel::ALERT     => null,
-        LogLevel::CRITICAL  => null,
-        LogLevel::ERROR     => null,
-        LogLevel::WARNING   => null,
-        LogLevel::NOTICE    => null,
-        LogLevel::INFO      => null,
-        LogLevel::DEBUG     => null
+        LogLevel::EMERGENCY,
+        LogLevel::ALERT,
+        LogLevel::CRITICAL,
+        LogLevel::ERROR,
+        LogLevel::WARNING,
+        LogLevel::NOTICE,
+        LogLevel::INFO,
+        LogLevel::DEBUG
     );
 
     protected function interpolate($message, array $context = array())
@@ -33,9 +33,9 @@ trait LoggerHelperTrait
         return $message;
     }
 
-    protected function checkSeverity($level)
+    protected function checkLevel($level)
     {
-        if (!array_key_exists($level, $this->levels)) {
+        if (!in_array($level, $this->levels)) {
             throw new InvalidArgumentException(
                 'Unknown severity level'
             );

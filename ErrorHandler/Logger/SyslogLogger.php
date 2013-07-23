@@ -4,17 +4,18 @@ namespace ErrorHandler\Logger;
 
 use \Psr\Log\LogLevel;
 use \Psr\Log\AbstractLogger;
+use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \InvalidArgumentException;
 use \RuntimeException;
 
 class SyslogLogger extends AbstractLogger
 {
 
-    private $label;
+    use LoggerTrait;
 
     private $facility;
 
-    private $levels = array (
+    private $map = array (
         LogLevel::EMERGENCY => LOG_EMERG,
         LogLevel::ALERT     => LOG_ALERT,
         LogLevel::CRITICAL  => LOG_CRIT,
@@ -39,8 +40,6 @@ class SyslogLogger extends AbstractLogger
         LOG_UUCP
     );
 
-    use LoggerHelperTrait;
-
     public function __construct($label = null, $facility = LOG_USER)
     {
         if (!in_array($facility, static::$facilities, true)) {
@@ -55,13 +54,13 @@ class SyslogLogger extends AbstractLogger
 
     public function log($level, $message, array $context = array())
     {
-        $this->checkSeverity($level);
+        $this->checkLevel($level);
 
         if (!openlog($this->label, LOG_PERROR | LOG_ODELAY | LOG_PID, $this->facility)) {
             throw new RuntimeException('Unable to open syslog');
         }
 
-        syslog($this->levels[$level], $this->interpolate($message, $context));
+        syslog($this->map[$level], $this->interpolate($message, $context));
 
         closelog();
     }

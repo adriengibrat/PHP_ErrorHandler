@@ -1,13 +1,13 @@
 <?php
 
-namespace ErrorHandler\Logger;
+namespace ErrorHandler\Logger\Multiple;
 
-class ErrorHandlerLogger extends MultiLogger
+class ErrorHandlerLogger extends MultipleLogger
 {
 
     public function log($level, $message, array $context = array())
     {
-        
+
 
 
         parent::log($level, $message, $context);

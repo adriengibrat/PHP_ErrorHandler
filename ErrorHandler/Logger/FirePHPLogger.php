@@ -5,13 +5,14 @@ namespace ErrorHandler\Logger;
 use \FirePHP;
 use \Psr\Log\LogLevel;
 use \Psr\Log\AbstractLogger;
+use \ErrorHandler\Logger\Helper\LoggerTrait;
 
 class FirePHPLogger extends AbstractLogger
 {
 
-    private $label;
+    use LoggerTrait;
 
-    private $levels = array (
+    private $map = array (
         LogLevel::EMERGENCY => FirePHP::ERROR,
         LogLevel::ALERT     => FirePHP::ERROR,
         LogLevel::CRITICAL  => FirePHP::ERROR,
@@ -22,8 +23,6 @@ class FirePHPLogger extends AbstractLogger
         LogLevel::DEBUG     => FirePHP::LOG
     );
 
-    use LoggerHelperTrait;
-
     public function __construct($label=null)
     {
         $this->label = $label;
@@ -31,7 +30,7 @@ class FirePHPLogger extends AbstractLogger
 
     public function log($level, $message, array $context = array())
     {
-        $this->checkSeverity($level);
+        $this->checkLevel($level);
 
         if (headers_sent() === true) {
             return;
@@ -53,8 +52,8 @@ class FirePHPLogger extends AbstractLogger
         } else {
             $options = array();
         }
-        
-        FirePHP::getInstance(true)->fb($message, $this->label, $this->levels[$level], $options);
+
+        FirePHP::getInstance(true)->fb($message, $this->label, $this->map[$level], $options);
     }
 
 }

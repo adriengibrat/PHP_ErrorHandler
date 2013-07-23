@@ -1,13 +1,15 @@
 <?php
 
-namespace ErrorHandler\Logger;
+namespace ErrorHandler\Logger\Multiple;
 
 use \Psr\Log\LogLevel;
 use \Psr\Log\LoggerInterface;
+use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \OutOfRangeException;
 
-class DispatchLogger extends MultiLogger
+class DispatchLogger extends MultipleLogger
 {
+
     const EMERGENCY = 1;
     const ALERT     = 2;
     const CRITICAL  = 4;
@@ -17,7 +19,7 @@ class DispatchLogger extends MultiLogger
     const INFO      = 64;
     const DEBUG     = 128;
 
-    private $levels = array(
+    protected $map = array(
         LogLevel::EMERGENCY => DispatchLogger::EMERGENCY,
         LogLevel::ALERT     => DispatchLogger::ALERT,
         LogLevel::CRITICAL  => DispatchLogger::CRITICAL,
@@ -28,28 +30,34 @@ class DispatchLogger extends MultiLogger
         LogLevel::DEBUG     => DispatchLogger::DEBUG
     );
 
-    use LoggerHelperTrait;
-
     public function log($level, $message, array $context = array())
     {
-        $this->checkSeverity($level);
+        $this->checkLevel($level);
 
         foreach($this->loggers as $flag => $logger)
         {
-            if ($flag & $this->levels[$level]) {
+            if ($flag & $this->map[$level]) {
                 $logger->log($level, $message, $context);
             }
         }
     }
 
-    public function offsetSet($flag, LoggerInterface $logger)
+    public function addLogger(LoggerInterface $logger, $flag)
     {
-        if (!is_int($flag) && (1 > $flag || $flag > 255)) {
+        if (is_string($flag)) {
+            $flag = array_reduce(explode('|', $flag), function ($flag, $level) {
+                return array_key_exists($level, $this->map) ? $flag | $this->map[$level] : -1;
+            }, 0);
+        }
+
+        if (!is_int($flag) || 1 > $flag || $flag > 255) {
             throw new OutOfRangeException(
-                'Invalid logging trigger flag'
+                'Invalid logging dispatch flag'
             );
         }
-        $this->loggers[$flag] = $value;
+
+        $this->loggers[$flag] = $logger;
+
         return $this;
     }
 

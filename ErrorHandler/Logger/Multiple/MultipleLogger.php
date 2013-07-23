@@ -1,15 +1,19 @@
 <?php
 
-namespace ErrorHandler\Logger;
+namespace ErrorHandler\Logger\Multiple;
 
+use \ArrayAccess;
+use \Countable;
 use \Psr\Log\AbstractLogger;
 use \Psr\Log\LoggerInterface;
+use \ErrorHandler\Logger\Helper\LoggerTrait;
 
-class MultiLogger extends AbstractLogger implement ArrayAccess, Countable
+class MultipleLogger extends AbstractLogger implements ArrayAccess, Countable
 {
-    protected $loggers;
 
-    use LoggerHelperTrait;
+    use LoggerTrait;
+
+    protected $loggers;
 
     public function __construct(array $loggers = array())
     {
@@ -20,12 +24,22 @@ class MultiLogger extends AbstractLogger implement ArrayAccess, Countable
 
     public function log($level, $message, array $context = array())
     {
-        $this->checkSeverity($level);
+        $this->checkLevel($level);
 
         foreach($this->loggers as $logger)
         {
             $logger->log($level, $message, $context);
         }
+    }
+
+    public function addLogger(LoggerInterface $logger, $index)
+    {
+        if (is_null($index)) {
+            $this->loggers[] = $logger;
+        } else {
+            $this->loggers[$index] = $logger;
+        }
+        return $this;
     }
 
     public function offsetExists($index)
@@ -40,10 +54,9 @@ class MultiLogger extends AbstractLogger implement ArrayAccess, Countable
             null;
     }
 
-    public function offsetSet($index, LoggerInterface $logger)
+    public function offsetSet($index, $logger)
     {
-        $this->loggers[$index] = $value;
-        return $this;
+        return $this->addLogger($logger, $index);
     }
 
     public function offsetUnset($index)

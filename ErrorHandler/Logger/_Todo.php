@@ -3,12 +3,13 @@
 namespace ErrorHandler\Logger;
 
 use \Psr\Log\AbstractLogger;
+use \ErrorHandler\Logger\Helper\LoggerTrait;
 use \RuntimeException;
 
 class XXXLogger extends AbstractLogger
 {
 
-    use LoggerHelperTrait;
+    use LoggerTrait;
 
     public function __construct($label = null)
     {
@@ -17,7 +18,7 @@ class XXXLogger extends AbstractLogger
 
     public function log($level, $message, array $context = array())
     {
-        $this->checkSeverity($level);
+        $this->checkLevel($level);
 
     }
 

@@ -11,7 +11,7 @@
     ],
     "autoload": {
         "classmap": [
-            "ErrorHandler.php"
+            "ErrorHandler/ErrorHandler.php"
         ]
     },
     "require": {
