@@ -12,6 +12,8 @@ class CurlLogger extends AbstractLogger
     public function __construct($handle, $label = null)
     {
         $this->setHandler($handle);
+
+        parent::__construct($label);
     }
 
     protected function setHandler($handle)

@@ -4,21 +4,14 @@ namespace ErrorHandler\Logger;
 
 use \RuntimeException;
 
-class StderrLogger extends AbstractLogger
+class StderrLogger extends StreamLogger
 {
 
-    private $file;
+    protected $stream = 'php://stderr';
 
     public function __construct($label = null)
     {
         $this->label = $label;
-    }
-
-    public function log($level, $message, array $context = array())
-    {
-        $this->checkLevel($level);
-
-        file_put_contents('php://stderr', $this->interpolate($message, $context));
     }
 
 }

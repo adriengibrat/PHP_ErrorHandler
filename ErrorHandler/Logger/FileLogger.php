@@ -7,7 +7,7 @@ use \RuntimeException;
 class FileLogger extends AbstractLogger
 {
 
-    private $file;
+    protected $file;
 
     public function __construct($file, $label = null)
     {
@@ -25,7 +25,8 @@ class FileLogger extends AbstractLogger
         }
 
         $this->file  = realpath($file);
-        $this->label = $label;
+
+        parent::__construct($label);
     }
 
     public function log($level, $message, array $context = array())

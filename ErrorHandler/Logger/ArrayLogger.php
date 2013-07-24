@@ -10,6 +10,8 @@ class ArrayLogger extends AbstractLogger
     public function __construct(array &$array, $label = null)
     {
         $this->array &= $array;
+
+        parent::__construct($label);
     }
 
     public function log($level, $message, array $context = array())

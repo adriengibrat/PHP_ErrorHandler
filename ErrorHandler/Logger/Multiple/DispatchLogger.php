@@ -45,13 +45,15 @@ class DispatchLogger extends LevelLogger
     {
         if (func_num_args() > 2) {
             $flag = $this->computeFlag($this->flatten(array_slice(func_get_args(), 1)));
+        } else if (is_int($flag)) {
+            // shortcut
         } else if (is_array($flag)) {
             $flag = $this->computeFlag($this->flatten($flag));
         } else if (is_string($flag)) {
             $flag = $this->computeFlag(explode('|', $flag));
         }
 
-        if (!is_int($flag) || 1 > $flag || $flag > 255) {
+        if (1 > $flag || $flag > 255) {
             throw new OutOfRangeException(
                 'Invalid logging dispatch flag'
             );
@@ -76,11 +78,16 @@ class DispatchLogger extends LevelLogger
     protected function computeFlag(Array $flags)
     {
         return array_reduce($flags, function ($flag, $level) {
-                if (!is_int($level)) {
-                    $level = array_key_exists($level, $this->map) ? $this->map[$level] : -1;
+            if (!is_int($level)) {
+                if (!array_key_exists($level, $this->map)) {
+                    throw new OutOfRangeException(
+                        'Invalid logging dispatch level'
+                    );
                 }
-                return $flag | $level;
-            }, 0);
+                $level = $this->map[$level];
+            }
+            return $flag | $level;
+        }, 0);
     }
 
 }
