@@ -32,7 +32,7 @@ class FirePHPLogger extends AbstractLogger
             return;
         }
 
-        $message = $this->interpolate($message, $context);
+        $message = $this->interpolate($message, $context, $level);
 
         $context = array_change_key_case($context);
         if (array_key_exists('file', $context) && array_key_exists('line', $context)) {

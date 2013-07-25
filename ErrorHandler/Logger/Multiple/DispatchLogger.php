@@ -79,6 +79,9 @@ class DispatchLogger extends LevelLogger
     {
         return array_reduce($flags, function ($flag, $level) {
             if (!is_int($level)) {
+                if ($level === 'all' || $level === '*') {
+                    return 255;
+                }
                 if (!array_key_exists($level, $this->map)) {
                     throw new OutOfRangeException(
                         'Invalid logging dispatch level'

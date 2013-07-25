@@ -56,7 +56,7 @@ class SyslogLogger extends AbstractLogger
             throw new RuntimeException('Unable to open syslog');
         }
 
-        syslog($this->map[$level], $this->interpolate($message, $context));
+        syslog($this->map[$level], $this->interpolate($message, $context, $level));
 
         closelog();
     }

@@ -27,7 +27,7 @@ abstract class AbstractLogger extends PsrAbstractLogger
         $this->label = $label;
     }
 
-    protected function interpolate($message, array $context = array())
+    protected function interpolate($message, array $context, $level)
     {
         $message = (string) $message;
         if (!empty($this->label)) {

@@ -18,7 +18,7 @@ class ArrayLogger extends AbstractLogger
     {
         $this->checkLevel($level);
 
-        $this->array[] = $this->interpolate($message, $context);
+        $this->array[] = $this->interpolate($message, $context, $level);
     }
 
 }

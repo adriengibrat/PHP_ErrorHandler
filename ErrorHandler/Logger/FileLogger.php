@@ -43,9 +43,18 @@ class FileLogger extends AbstractLogger
             throw new RuntimeException ('Unable to lock file');
         }
 
-        fwrite($handle, $this->interpolate($message, $context));
+        fwrite($handle, $this->interpolate($message, $context, $level));
         flock($handle, LOCK_UN);
         fclose($handle);
+    }
+
+    protected function interpolate($message, array $context, $level)
+    {
+        return sprintf('%s %s\t%s\n',
+			date('Y-m-d H:i:s'),
+			$level,
+			parent::interpolate($message, $context, $level)
+		);
     }
 
 }
