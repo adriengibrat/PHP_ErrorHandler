@@ -25,4 +25,11 @@ class StderrLogger extends StreamLogger
         $this->label = $label;
     }
 
+    public function log($level, $message, array $context = array())
+    {
+        $this->checkLevel($level);
+
+        file_put_contents($this->stream, $this->interpolate($message, $context, $level));
+    }
+
 }

@@ -2,38 +2,35 @@
 
 namespace ErrorHandler\Logger;
 
-use \RuntimeException;
+use \Psr\Log\LogLevel;
 
-class FileLogger extends AbstractLogger
+class FileLogger extends StreamLogger
 {
-
-    protected $file;
 
     public function __construct($file, $label = null)
     {
-
         $path = dirname($file);
         if (!is_dir($path) && !mkdir($path, 0755, true)) {
             throw new RuntimeException('Unable to create path');
         }
 
+/*
         $handle = fopen($file, 'a+');
         if (!$handle) {
             throw new RuntimeException('Unable to create file');
         } else {
             fclose($handle);
         }
+*/
 
-        $this->file  = realpath($file);
-
-        parent::__construct($label);
+        parent::__construct(realpath($file), $label);
     }
-
+/*
     public function log($level, $message, array $context = array())
     {
         $this->checkLevel($level);
 
-        $handle = fopen($this->file, 'a+');
+        $handle = fopen($this->stream, 'a+');
 
         if (!$handle) {
             throw new RuntimeException('Unable to open file for writing');
@@ -47,14 +44,5 @@ class FileLogger extends AbstractLogger
         flock($handle, LOCK_UN);
         fclose($handle);
     }
-
-    protected function interpolate($message, array $context, $level)
-    {
-        return sprintf('%s %s\t%s\n',
-			date('Y-m-d H:i:s'),
-			$level,
-			parent::interpolate($message, $context, $level)
-		);
-    }
-
+*/
 }
